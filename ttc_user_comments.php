@@ -2,9 +2,9 @@
 /*
 Plugin Name: TTC User Comment Count
 Plugin URI: http://herselfswebtools.com/2008/05/wordpress-plugin-to-sort-through-users.html
-Description: Creates a list of all users, registration date, and number of comments See link under 'Manage' to access page
+Description: Creates a list of all users, registration date, and number of comments See link under 'Manage' to access page and checks email address against www.stopforumspam.com database.
 Author: Linda MacPhee-Cobb
-Version: 1.0
+Version: 2.0
 Author URI: http://timestocome.com
 */
 
@@ -48,24 +48,28 @@ function ttc_manage_users_page() {
 			$date_registered = $users->registration_date;
 			$last_comment = $users->last_comment_date;
 			
-			print "<tr><td>$number_of_posts</td><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$last_comment</td></tr>";
+			print "\n<tr><td>$number_of_posts</td><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$last_comment</td></tr>";
 			
 	}
 	print "</table>";
     print "<br><br>";
 
 	print "<table border='3' width='700'><th colspan='3'>Users with no comments</th>";
-	print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td></tr>";
+	print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td><td><b>Known Spammer?</td></tr>";
 	foreach ( $users_with_no_comments as $users ){
 			$user_name = $users->user_login;
 			$user_email = $users->user_email;
 			$date_registered = $users->user_registration_date;
+			$check = file_get_contents ( "http://stopforumspam.com/api?email=$user_email" );	
+			$test = "<appears>yes</appears>";
 			
-			print "<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td></tr>";
+			if ( strpos($check, $test) > 0 ) { $check = '<b>yes</b>'; } else { $check = 'no'; }
+			
+			print "\n<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$check</td></tr>";
 	}
 	print "</table>";
 
-
+	
 }
 
 
