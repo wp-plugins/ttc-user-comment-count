@@ -4,7 +4,7 @@ Plugin Name: TTC User Comment Count
 Plugin URI: http://herselfswebtools.com/2008/05/wordpress-plugin-to-sort-through-users.html
 Description: Creates a list of all users, registration date, and number of comments See link under 'Manage' to access page and checks email address against www.stopforumspam.com database.
 Author: Linda MacPhee-Cobb
-Version: 2.0
+Version: 2.1
 Author URI: http://timestocome.com
 */
 
@@ -24,16 +24,16 @@ function ttc_add_user_manager_pages() {
 // mt_manage_page() displays the page content for the Test Manage submenu
 function ttc_manage_users_page() {
 
-	global $wpdb, $post;
+	global $wpdb;
 	$table_prefix = $wpdb->prefix;
 	
 	$users_with_comments = (array)$wpdb->get_results("select count(*) user_login, comment_author, user_email, 
-				date_format( user_registered, '%M %d %Y') as registration_date,  date_format( max(comment_date), '%M %d %Y' ) as last_comment_date  from wp_users, 
-				wp_comments where user_login = comment_author group by comment_author order by user_registered;
+				date_format( user_registered, '%M %d %Y') as registration_date,  date_format( max(comment_date), '%M %d %Y' ) as last_comment_date  from {$table_prefix}users, 
+				{$table_prefix}comments where user_login = comment_author group by comment_author order by user_registered;
 	");
 
 	$users_with_no_comments = (array)$wpdb->get_results("select user_login, user_email, date_format( user_registered, '%M %d %Y' ) as user_registration_date
-		from wp_users where wp_users.user_login not in ( select comment_author from wp_comments );
+		from {$table_prefix}users where {$table_prefix}users.user_login not in ( select comment_author from {$table_prefix}comments );
 	");
 	
     print "<h2>User Comment Count</h2>";
