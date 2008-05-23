@@ -4,7 +4,7 @@ Plugin Name: TTC User Comment Count
 Plugin URI: http://herselfswebtools.com/2008/05/wordpress-plugin-to-sort-through-users.html
 Description: Creates a list of all users, registration date, and number of comments See link under 'Manage' to access page and checks email address against www.stopforumspam.com database.
 Author: Linda MacPhee-Cobb
-Version: 2.1
+Version: 2.2
 Author URI: http://timestocome.com
 */
 
@@ -27,16 +27,17 @@ function ttc_manage_users_page() {
 	global $wpdb;
 	$table_prefix = $wpdb->prefix;
 	
+	
 	$users_with_comments = (array)$wpdb->get_results("select count(*) user_login, comment_author, user_email, 
-				date_format( user_registered, '%M %d %Y') as registration_date,  date_format( max(comment_date), '%M %d %Y' ) as last_comment_date  from {$table_prefix}users, 
-				{$table_prefix}comments where user_login = comment_author group by comment_author order by user_registered;
+			date_format( user_registered, '%M %d %Y') as registration_date,  date_format( max(comment_date), '%M %d %Y' ) as last_comment_date  from {$table_prefix}users, 
+			{$table_prefix}comments where user_login = comment_author group by comment_author order by user_registered;
 	");
 
 	$users_with_no_comments = (array)$wpdb->get_results("select user_login, user_email, date_format( user_registered, '%M %d %Y' ) as user_registration_date
 		from {$table_prefix}users where {$table_prefix}users.user_login not in ( select comment_author from {$table_prefix}comments );
 	");
 	
-    print "<h2>User Comment Count</h2>";
+	print "<h2>User Comment Count</h2>";
 
 
 	print "<table border='3' width='700'><th colspan='5'>Users who comment</th>";
@@ -48,27 +49,50 @@ function ttc_manage_users_page() {
 			$date_registered = $users->registration_date;
 			$last_comment = $users->last_comment_date;
 			
-			print "\n<tr><td>$number_of_posts</td><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$last_comment</td></tr>";
+		print "\n<tr><td>$number_of_posts</td><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$last_comment</td></tr>";
 			
 	}
 	print "</table>";
-    print "<br><br>";
+	print "<br><br>";
 
-	print "<table border='3' width='700'><th colspan='3'>Users with no comments</th>";
-	print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td><td><b>Known Spammer?</td></tr>";
-	foreach ( $users_with_no_comments as $users ){
+
+
+
+	$stop_forum_spam_ip = gethostbyname( "stopforumspam.com" );
+
+	if  ( substr_count($stop_forum_spam, '.') > 2 ){ //checking for NULL, false etc just doesn't work so see if something like an ip addr can be got returned x.x.x.x
+		print "<br> IP ok ";
+		print "<table border='3' width='700'><th colspan='3'>Users with no comments</th>";
+		print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td><td><b>Known Spammer?</td></tr>";
+		
+		foreach ( $users_with_no_comments as $users ){
 			$user_name = $users->user_login;
 			$user_email = $users->user_email;
 			$date_registered = $users->user_registration_date;
-			$check = file_get_contents ( "http://stopforumspam.com/api?email=$user_email" );	
+			$check = file_get_contents ( "http://$stop_forum_spam_ip/api?email=$user_email" );	
 			$test = "<appears>yes</appears>";
-			
+		
 			if ( strpos($check, $test) > 0 ) { $check = '<b>yes</b>'; } else { $check = 'no'; }
+				print "\n<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$check</td></tr>";
 			
-			print "\n<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$check</td></tr>";
-	}
-	print "</table>";
+		}
+	
+		print "</table>";
 
+	}else{	//can't reach stopforumspam.com our webhosting company failed in the lookup or they are offline
+		print "<br><b>Can not reach stopforumspam.com your webhosting site is not doing the dns lookup properly or the site is offline</b>";
+		print "<table border='3' width='700'><th colspan='3'>Users with no comments</th>";
+		print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td><td><b>Known Spammer?</td></tr>";
+		foreach ( $users_with_no_comments as $users ){
+			$user_name = $users->user_login;
+			$user_email = $users->user_email;
+			$date_registered = $users->user_registration_date;
+								
+			print "\n<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td> ? </td></tr>";
+
+	    }
+		print "</table>";
+	}
 	
 }
 

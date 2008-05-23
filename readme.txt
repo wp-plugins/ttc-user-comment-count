@@ -3,7 +3,7 @@ Contributors: Linda MacPhee-Cobb
 Tags: comments, users, date, registration, last comment, number of comments
 Requires at least: 2.5
 Tested up to: 2.5.1
-Stable tag: 2.1
+Stable tag: 2.2
 
 == Description ==
 This plugin creates a page under 'Manage'.  On this page is two lists, one for users who've registered and never commented.
