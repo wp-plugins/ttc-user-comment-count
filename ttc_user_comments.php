@@ -4,7 +4,7 @@ Plugin Name: TTC User Comment Count
 Plugin URI: http://herselfswebtools.com/2008/05/wordpress-plugin-to-sort-through-users.html
 Description: Creates a list of all users, registration date, and number of comments See link under 'Manage' to access page and checks email address against www.stopforumspam.com database.
 Author: Linda MacPhee-Cobb
-Version: 2.2
+Version: 2.21
 Author URI: http://timestocome.com
 */
 
@@ -56,44 +56,24 @@ function ttc_manage_users_page() {
 	print "<br><br>";
 
 
-
-
-	$stop_forum_spam_ip = gethostbyname( "stopforumspam.com" );
-
-	if  ( substr_count($stop_forum_spam, '.') > 2 ){ //checking for NULL, false etc just doesn't work so see if something like an ip addr can be got returned x.x.x.x
-		print "<br> IP ok ";
-		print "<table border='3' width='700'><th colspan='3'>Users with no comments</th>";
-		print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td><td><b>Known Spammer?</td></tr>";
+	print "<table border='3' width='700'><th colspan='3'>Users with no comments</th>";
+	print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td><td><b>Known Spammer?</td></tr>";
 		
-		foreach ( $users_with_no_comments as $users ){
-			$user_name = $users->user_login;
-			$user_email = $users->user_email;
-			$date_registered = $users->user_registration_date;
-			$check = file_get_contents ( "http://$stop_forum_spam_ip/api?email=$user_email" );	
-			$test = "<appears>yes</appears>";
+	foreach ( $users_with_no_comments as $users ){
+		$user_name = $users->user_login;
+		$user_email = $users->user_email;
+		$date_registered = $users->user_registration_date;
+		$check = file_get_contents ( "http://www.stopforumspam.com/api?email=$user_email" );	
+		$test = "<appears>yes</appears>";
 		
-			if ( strpos($check, $test) > 0 ) { $check = '<b>yes</b>'; } else { $check = 'no'; }
-				print "\n<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$check</td></tr>";
+		if ( strpos($check, $test) > 0 ) { $check = '<b>yes</b>'; } else { $check = 'no'; }
+			print "\n<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td>$check</td></tr>";
 			
-		}
-	
-		print "</table>";
-
-	}else{	//can't reach stopforumspam.com our webhosting company failed in the lookup or they are offline
-		print "<br><b>Can not reach stopforumspam.com your webhosting site is not doing the dns lookup properly or the site is offline</b>";
-		print "<table border='3' width='700'><th colspan='3'>Users with no comments</th>";
-		print "<tr><td><b>User Name</b></td><td><b>User Email</b></td><td><b>Date Registered</b></td><td><b>Known Spammer?</td></tr>";
-		foreach ( $users_with_no_comments as $users ){
-			$user_name = $users->user_login;
-			$user_email = $users->user_email;
-			$date_registered = $users->user_registration_date;
-								
-			print "\n<tr><td>$user_name</td><td><a href=\"mailto:$user_email\">$user_email</a></td><td>$date_registered</td><td> ? </td></tr>";
-
-	    }
-		print "</table>";
 	}
 	
+		print "</table>";
+	
+		
 }
 
 
